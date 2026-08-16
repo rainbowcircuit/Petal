@@ -40,7 +40,6 @@ apvts(audioProcessor, nullptr, "Parameters", createParameterLayout())
 
     // window
     windowSize = std::make_unique<ParameterInstance>(audioProcessor, *this, "windowSize");
-    windowJitter = std::make_unique<ParameterInstance>(audioProcessor, *this, "windowJitter");
     lfoRate = std::make_unique<ParameterInstance>(audioProcessor, *this, "lfoRate");
     lfoAmount = std::make_unique<ParameterInstance>(audioProcessor, *this, "lfoAmount");
     filterCutoff = std::make_unique<ParameterInstance>(audioProcessor, *this, "filterCutoff");
@@ -221,8 +220,16 @@ Parameters::createParameterLayout()
 ParameterInstance::ParameterInstance(PetalAudioProcessor& p, Parameters& pm, juce::String paramID) : audioProcessor(p), param(pm)
 {
     this->paramID = paramID;
-    
-    float initValue = param.apvts.getRawParameterValue(paramID)->load();
+
+    // A missing ID here means it was never added in createParameterLayout(),
+    // which would otherwise null-deref and crash the plugin on instantiation.
+    auto* rawValue = param.apvts.getRawParameterValue(paramID);
+    jassert(rawValue != nullptr);
+
+    if (rawValue == nullptr)
+        return;
+
+    float initValue = rawValue->load();
     value.store(initValue);
     valueSafe = initValue;
     cachedValue.store(initValue);

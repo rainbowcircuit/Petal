@@ -122,8 +122,25 @@ juce::WebBrowserComponent::Options PetalAudioProcessorEditor::buildWebviewOption
         completion(juce::var());
     });
 
-    return options.withResourceProvider([this](const auto &url)
-                                        { return getResource(url); });
+    options = options.withResourceProvider([this](const auto &url)
+                                           { return getResource(url); });
+
+#if JUCE_WINDOWS
+    // The default Windows backend is the legacy IE control, which has no resource
+    // provider support - it would try to resolve https://juce.backend over the network
+    // and fail. WebView2 has to be requested explicitly.
+    //
+    // The user data folder must also be overridden: it otherwise defaults to a location
+    // next to the host executable (e.g. the DAW's install dir under Program Files),
+    // which plugins generally can't write to, and WebView2 then silently falls back to IE.
+    options = options.withBackend(juce::WebBrowserComponent::Options::Backend::webview2)
+                     .withWinWebView2Options(
+                         juce::WebBrowserComponent::Options::WinWebView2{}
+                             .withUserDataFolder(juce::File::getSpecialLocation(
+                                 juce::File::SpecialLocationType::tempDirectory)));
+#endif
+
+    return options;
 }
 
 PetalAudioProcessorEditor::PetalAudioProcessorEditor(PetalAudioProcessor &p)
@@ -214,7 +231,14 @@ PetalAudioProcessorEditor::PetalAudioProcessorEditor(PetalAudioProcessor &p)
 
 PetalAudioProcessorEditor::~PetalAudioProcessorEditor()
 {
-
+    // Stop the timer before any members are torn down. The base juce::Timer destructor
+    // only runs after this class's members are already gone, and destroying the
+    // WebView2-backed browser component pumps the message loop - which can dispatch a
+    // queued timerCallback() against a half-destroyed webview. The nullptr check in
+    // timerCallback() doesn't help: the unique_ptr still holds a non-null pointer while
+    // ~WebBrowserComponent is running.
+    stopTimer();
+    webview.reset();
 }
 
 //==============================================================================

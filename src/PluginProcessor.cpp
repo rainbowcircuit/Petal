@@ -87,6 +87,7 @@ void PetalAudioProcessor::changeProgramName (int index, const juce::String& newN
 //==============================================================================
 void PetalAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
+    params->prepare(sampleRate, samplesPerBlock);
     petal.prepareToPlay(sampleRate, samplesPerBlock);
 }
 

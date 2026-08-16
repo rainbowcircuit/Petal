@@ -88,6 +88,11 @@ public:
             case 2: // HP
                 y = x - k * v1 - v2;
                 break;
+
+            default: // out-of-range type would otherwise return an uninitialised
+                     // sample straight into the audio path
+                y = v2;
+                break;
         }
         return y;
     }

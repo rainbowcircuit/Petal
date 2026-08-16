@@ -1,5 +1,6 @@
 #pragma once
 #include <JuceHeader.h>
+#include <vector>
 #include "../PluginProcessor.h"
 
 class PetalAudioProcessor;
@@ -8,12 +9,21 @@ class Parameters
 {
 public:
     Parameters(PetalAudioProcessor& p);
-    
+
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
-    
+
+    /** Re-derives every parameter's smoothing ramp from the current sample rate and
+        block size. Call from prepareToPlay. */
+    void prepare(double sampleRate, int samplesPerBlock);
+
+    /** ParameterInstances add themselves here on construction, so prepare() can reach
+        all of them without a hand-maintained list that could drift out of sync. */
+    void registerInstance(ParameterInstance* instance);
+
 private:
     PetalAudioProcessor& audioProcessor;
-    
+    std::vector<ParameterInstance*> instances;
+
 public:
     juce::AudioProcessorValueTreeState apvts;
 
@@ -65,7 +75,13 @@ class ParameterInstance : public juce::AudioProcessorParameter::Listener, juce::
 {
 public:
     ParameterInstance(PetalAudioProcessor& p, Parameters& pm, juce::String paramID);
-    
+
+    /** Sets the smoothing ramp length. getSmooth() advances the ramp once per
+        processBlock() call, so the length is measured in blocks - deriving it from the
+        sample rate and block size keeps the smoothing time fixed rather than letting it
+        scale with the host's buffer size. */
+    void prepare(double sampleRate, int samplesPerBlock) noexcept;
+
     //==============================================================================
     void parameterValueChanged (int /*maybe unused*/, float newValue) override;
     void parameterGestureChanged (int parameterIndex, bool gestureIsStarting) override {}
@@ -80,6 +96,9 @@ public:
     juce::RangedAudioParameter *getRangedAudioParameter() const noexcept;
 
 private:
+    /** How long a parameter takes to reach a new value, in seconds. */
+    static constexpr double smoothingTimeSeconds = 0.05;
+
     float valueSafe;
     std::atomic<float> value;
     std::atomic<float> cachedValue;

@@ -1,3 +1,4 @@
+#pragma once
 #include <JuceHeader.h>
 #include <cmath>
 #include <limits>

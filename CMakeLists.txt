@@ -9,6 +9,15 @@ project(Petal VERSION 0.1.0)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Statically link the MSVC runtime so the shipped plugin doesn't require users to
+# have the Visual C++ Redistributable installed. Without this the binary imports
+# MSVCP140.dll / VCRUNTIME140.dll / VCRUNTIME140_1.dll, which are absent on a clean
+# Windows install, and the DAW's plugin scan fails to load it.
+# Must be set before targets are created (including JUCE's).
+if(MSVC)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+
 # Fetch JUCE from GitHub
 include(FetchContent)
 FetchContent_Declare(

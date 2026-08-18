@@ -57,7 +57,6 @@ public:
 
 private:
     std::vector<float> buffer;
-    int bufferInSamples = 0;
     int writeIndex = 0, bufferLength = 0;
 };
 

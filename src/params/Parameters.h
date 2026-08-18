@@ -61,8 +61,7 @@ private:
 
     juce::String paramID;
     juce::RangedAudioParameter* rangedParam = nullptr;
-    
-    PetalAudioProcessor& audioProcessor;
+
     Parameters& param;
 };
 

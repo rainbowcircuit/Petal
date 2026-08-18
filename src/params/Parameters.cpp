@@ -88,7 +88,7 @@ Parameters::createParameterLayout()
     return layout;
 }
 
-ParameterInstance::ParameterInstance(PetalAudioProcessor& p, Parameters& pm, juce::String paramID) : audioProcessor(p), param(pm)
+ParameterInstance::ParameterInstance(PetalAudioProcessor& p, Parameters& pm, juce::String paramID) : param(pm)
 {
     this->paramID = paramID;
 

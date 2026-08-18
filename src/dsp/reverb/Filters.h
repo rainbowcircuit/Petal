@@ -36,9 +36,8 @@ public:
         return y;
     }
 
-private: 
-    double sampleRate = 48000.0, phase = 0.0;
-    bool isModulated = false;
+private:
+    double sampleRate = 48000.0;
     int delayInSamples = 24;
     float gain = 0.5f;
     juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Linear> dl;

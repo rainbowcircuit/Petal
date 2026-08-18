@@ -70,7 +70,6 @@ private:
 
     float inputGain = 1.0f, delayGain = 1.0, dryGain = 1.0f;
 
-    bool feedbackSuppression = false;
     float feedbackAmt = 0.0f, feedbackL = 0.0f, feedbackR = 0.0f;
     int feedbackLen = 0;
     Delayline dlL, dlR, fbDlL, fbDlR;

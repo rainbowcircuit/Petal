@@ -14,7 +14,7 @@ public:
 
 private: 
     double sampleRate = 48000.0;
-    float level = 1.0f, damping = 0.5, decay = 0.9f, size = 1.0f, feedBackAmount = 0.95f;
+    float level = 1.0f, size = 1.0f, feedBackAmount = 0.95f;
     float feedbackL = 0.0f, feedbackR = 0.0f;
 
     juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Linear> dlL, dlR;

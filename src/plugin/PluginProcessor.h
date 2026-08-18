@@ -9,10 +9,10 @@
 #pragma once
 
 #include <juce_audio_processors/juce_audio_processors.h>
-#include "dsp/reverb/Reverb.h"
-#include "params/Parameters.h"
-#include "plugin/PetalProcessor.h"
-#include "params/PresetLoader.h"
+#include "../dsp/reverb/Reverb.h"
+#include "../params/Parameters.h"
+#include "PetalProcessor.h"
+#include "../params/PresetLoader.h"
 
 class Parameters;
 class PetalAudioProcessor  : public juce::AudioProcessor

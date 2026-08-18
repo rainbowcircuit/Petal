@@ -1,7 +1,6 @@
 import { LitElement, html, css } from 'lit';
-import { drawButton } from './drawings.js';
-import "./ui/button.js"
-import { drawReverbSend, drawPitch, drawTapState, drawSelectDelay, drawSelectReverb, drawSelectIO } from './drawings.js';
+import "../components/button.js"
+import { drawSelectDelay, drawSelectReverb, drawSelectIO } from './drawing.js';
 
 export class SelectionTab extends LitElement {
     static properties = {

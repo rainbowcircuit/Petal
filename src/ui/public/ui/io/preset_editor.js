@@ -1,6 +1,5 @@
 import { LitElement, html, css } from 'lit';
-import "./ui/button.js"
-import { getNativeFunction } from '../juce.js';
+import { getNativeFunction } from '../../juce.js';
 
 
 export class PresetEditor extends LitElement {

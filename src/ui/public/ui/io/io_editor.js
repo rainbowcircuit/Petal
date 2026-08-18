@@ -1,11 +1,10 @@
 import { LitElement, html, css } from 'lit';
-import "./ui/pictSlider.js"
-import "./ui/button.js"
-import "./ui/utility.js"
+import "../components/slider.js"
+import "../components/utility.js"
 import './preset_editor.js'
-import { color } from './drawings.js';
-import { getSliderState } from '../juce.js';
-import { drawFilterGraph, drawModDisplay ,drawSlider } from './drawings.js';
+import { color } from '../shared/drawing.js';
+import { getSliderState } from '../../juce.js';
+import { drawFilterGraph, drawModDisplay, drawSlider } from './drawing.js';
 
 export class IOEditor extends LitElement {
     static styles = css`

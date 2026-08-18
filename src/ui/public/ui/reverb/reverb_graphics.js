@@ -1,10 +1,8 @@
 import { LitElement, html, css } from 'lit';
 import * as THREE from 'three';
-import { reverbLevelMsr } from '../event_listener.js';
-import "./ui/utility.js"
-import { Smoothening } from './ui/utility.js';
-import { getSliderState } from '../juce.js';
-import { color } from './drawings.js';
+import { Smoothening } from '../components/utility.js';
+import { getSliderState } from '../../juce.js';
+import { color } from '../shared/drawing.js';
 
 export class ReverbGraphic extends LitElement {
 
@@ -31,6 +29,17 @@ export class ReverbGraphic extends LitElement {
         super();
         this.width = 450;
         this.height = 300;
+
+        this.reverbLevelMsr = 0.0;
+
+        this.backendListeners = [];
+        if (window.__JUCE__) {
+            this.backendListeners.push(
+                window.__JUCE__.backend.addEventListener("reverbLevelMsr", (values) => { this.reverbLevelMsr = JSON.parse(values); })
+            );
+        } else {
+            console.warn("JUCE backend not found — using placeholder reverb level");
+        }
     }
 
     firstUpdated() {
@@ -57,8 +66,6 @@ export class ReverbGraphic extends LitElement {
 
         this.reverbSizeSlider = getSliderState("reverbSize");
         this.reverbSizeSlider.valueChangedEvent.addListener(onSliderChange);
-
-        this.reverbLevelMsr = reverbLevelMsr;   
     }
 
     createTexture(){
@@ -191,7 +198,7 @@ export class ReverbGraphic extends LitElement {
     }
     
     animate() {
-        this.reverbSmoother.set(Math.abs(reverbLevelMsr));
+        this.reverbSmoother.set(Math.abs(this.reverbLevelMsr));
 
 
         this.reverbLevel = this.reverbSmoother.get();
@@ -205,6 +212,9 @@ export class ReverbGraphic extends LitElement {
     disconnectedCallback() {
         super.disconnectedCallback();
         cancelAnimationFrame(this.raf);
+        for (const handle of this.backendListeners) {
+            window.__JUCE__.backend.removeEventListener(handle);
+        }
         this.renderer?.dispose();
     }
 

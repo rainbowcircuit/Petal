@@ -1,11 +1,11 @@
 import { LitElement, html, css } from 'lit';
-import "./ui/pictSlider.js"
-import "./ui/button.js"
+import "../components/slider.js"
+import "../components/button.js"
 import "./delay_graphic.js"
-import { color } from './drawings.js';
-import "./ui/utility.js"
+import { color } from '../shared/drawing.js';
+import "../components/utility.js"
 
-import { drawLock, drawSkew, drawPosition } from './drawings.js';
+import { drawLock, drawSkew } from './drawing.js';
 
 const SYNC_TIME_LABELS = [
     "1/32", "3/64", "1/16", "3/32", "1/8", "3/16",

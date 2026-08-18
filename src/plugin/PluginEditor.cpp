@@ -66,37 +66,11 @@ bool PetalAudioProcessorEditor::isWebView2RuntimeAvailable()
 
 juce::WebBrowserComponent::Options PetalAudioProcessorEditor::buildWebviewOptions()
 {
-    auto options = juce::WebBrowserComponent::Options{}
-                       .withOptionsFrom(inputLevelRelay)
-                       .withOptionsFrom(freeTimeLRelay)
-                       .withOptionsFrom(freeTimeRRelay)
-                       .withOptionsFrom(syncTimeLRelay)
-                       .withOptionsFrom(syncTimeRRelay)
-                       .withOptionsFrom(isSyncLRelay)
-                       .withOptionsFrom(isSyncRRelay)
-                       .withOptionsFrom(stereoLockRelay)
-                       .withOptionsFrom(positionLRelay)
-                       .withOptionsFrom(skewLRelay)
-                       .withOptionsFrom(positionRRelay)
-                       .withOptionsFrom(skewRRelay)
-                       .withOptionsFrom(roundRelay)
-                       .withOptionsFrom(delayLevelRelay)
-                       .withOptionsFrom(windowSizeRelay)
+    auto options = juce::WebBrowserComponent::Options{};
 
-                       .withOptionsFrom(feedbackAmtRelay)
-                       .withOptionsFrom(feedbackLenRelay)
-
-                       .withOptionsFrom(filterCutoffRelay)
-                       .withOptionsFrom(filterShapeRelay)
-                       .withOptionsFrom(lfoRateRelay)
-                       .withOptionsFrom(lfoAmountRelay)
-
-                       .withOptionsFrom(reverbSizeRelay)
-                       .withOptionsFrom(reverbDecayTimeRelay)
-                       .withOptionsFrom(reverbLPFRelay)
-                       .withOptionsFrom(reverbHPFRelay)
-                       .withOptionsFrom(reverbLevelRelay)
-                       .withOptionsFrom(dryLevelRelay);
+#define X(id, ...) options = options.withOptionsFrom(id##Relay);
+    PETAL_ALL_SCALAR_PARAMS(X)
+#undef X
 
     for (auto &relay : tapStateRelays)
         options = options.withOptionsFrom(*relay);
@@ -180,34 +154,9 @@ PetalAudioProcessorEditor::PetalAudioProcessorEditor(PetalAudioProcessor &p)
     setSize((int)width * 0.875f, (int)width * 0.875f / 2);
     startTimerHz(30);
 
-    inputLevelAttachment.sendInitialUpdate();
-
-    freeTimeLAttachment.sendInitialUpdate();
-    freeTimeRAttachment.sendInitialUpdate();
-    syncTimeLAttachment.sendInitialUpdate();
-    syncTimeRAttachment.sendInitialUpdate();
-    isSyncLAttachment.sendInitialUpdate();
-    isSyncRAttachment.sendInitialUpdate();
-    stereoLockAttachment.sendInitialUpdate();
-    positionLAttachment.sendInitialUpdate();
-    skewLAttachment.sendInitialUpdate();
-    positionRAttachment.sendInitialUpdate();
-    skewRAttachment.sendInitialUpdate();
-    roundAttachment.sendInitialUpdate();
-
-    feedbackAmtAttachment.sendInitialUpdate();
-    feedbackLenAttachment.sendInitialUpdate();
-
-    windowSizeAttachment.sendInitialUpdate();
-    delayLevelAttachment.sendInitialUpdate();
-
-    reverbSizeAttachment.sendInitialUpdate();
-    reverbDecayTimeAttachment.sendInitialUpdate();
-    reverbLPFAttachment.sendInitialUpdate();
-    reverbHPFAttachment.sendInitialUpdate();
-    reverbLevelAttachment.sendInitialUpdate();
-
-    dryLevelAttachment.sendInitialUpdate();
+#define X(id, ...) id##Attachment.sendInitialUpdate();
+    PETAL_ALL_SCALAR_PARAMS(X)
+#undef X
 
     for (int tap = 0; tap < 8; ++tap)
     {
@@ -231,12 +180,6 @@ PetalAudioProcessorEditor::PetalAudioProcessorEditor(PetalAudioProcessor &p)
 
 PetalAudioProcessorEditor::~PetalAudioProcessorEditor()
 {
-    // Stop the timer before any members are torn down. The base juce::Timer destructor
-    // only runs after this class's members are already gone, and destroying the
-    // WebView2-backed browser component pumps the message loop - which can dispatch a
-    // queued timerCallback() against a half-destroyed webview. The nullptr check in
-    // timerCallback() doesn't help: the unique_ptr still holds a non-null pointer while
-    // ~WebBrowserComponent is running.
     stopTimer();
     webview.reset();
 }

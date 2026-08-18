@@ -92,12 +92,13 @@ add_dependencies(PetalUIData PetalUIBundle)
 # Source files
 target_sources(Petal
     PRIVATE
-        src/PluginProcessor.cpp
-        src/PluginProcessor.h
-        src/PluginEditor.cpp
-        src/PluginEditor.h
+        src/plugin/PluginProcessor.cpp
+        src/plugin/PluginProcessor.h
+        src/plugin/PluginEditor.cpp
+        src/plugin/PluginEditor.h
         src/params/Parameters.cpp
         src/params/Parameters.h
+        src/params/ParameterList.h
         src/params/PresetLoader.cpp
         src/params/PresetLoader.h
         src/plugin/PetalProcessor.cpp

@@ -1,10 +1,9 @@
 import { LitElement, html, css } from 'lit';
-import { drawButton, lerpColor } from './drawings.js';
-import { getSliderState } from '../juce.js';
-import "./ui/pictSlider.js"
-import "./ui/button.js"
-import { drawReverbSend, drawPitch, drawTapState, drawSelectDelay, drawSelectReverb } from './drawings.js';
-import { color } from './drawings.js';
+import { getSliderState } from '../../juce.js';
+import "../components/slider.js"
+import "../components/button.js"
+import { color, lerpColor } from '../shared/drawing.js';
+import { drawReverbSend, drawPitch, drawTapState } from './drawing.js';
 
 export class TapEditorInstance extends LitElement {
     static properties = {

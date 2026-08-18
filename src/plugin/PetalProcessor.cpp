@@ -20,13 +20,14 @@ void PetalProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     cr.updateCorrelationSizes();
 
     for (auto &t : tp)
-        for (int sub = 0; sub < numOverlaps; ++sub)
-        {
-            float p = (float)sub / (float)numOverlaps;
-            t.phasePrevSub[sub] = p;
-            t.simOffsetL[sub] = 0.0f;
-            t.simOffsetR[sub] = 0.0f;
-        }
+    {
+        t.phasePrevSub0 = 0.0f;
+        t.phasePrevSub1 = 0.5f;
+        t.simOffsetL0 = 0.0f;
+        t.simOffsetL1 = 0.0f;
+        t.simOffsetR0 = 0.0f;
+        t.simOffsetR1 = 0.0f;
+    }
 
     for (int tap = 0; tap < 8; tap++) // clean this up maybe
     {
@@ -84,31 +85,61 @@ void PetalProcessor::processBlock(juce::AudioBuffer<float> &buffer) noexcept
             const float baseTimeL = tp[tap].timeL.getNextValue();
             const float baseTimeR = tp[tap].timeR.getNextValue();
 
-            for (int sub = 0; sub < numOverlaps; sub++) // collapse this loop since theres only 2 overlaps
+            // sub 0 (in phase)
             {
-                float phase = tp[tap].phase + (float)sub / (float)numOverlaps;
+                float phase = tp[tap].phase;
                 if (phase >= 1.0f)
                     phase -= 1.0f;
 
-                const float prevPhase = tp[tap].phasePrevSub[sub];
+                const float prevPhase = tp[tap].phasePrevSub0;
                 if (std::abs(phase - prevPhase) > 0.5f)
                 {
-                    const float endPosL = baseTimeL + windowSizeInSamples * prevPhase + tp[tap].simOffsetL[sub];
-                    const float endPosR = baseTimeR + windowSizeInSamples * prevPhase + tp[tap].simOffsetR[sub];
+                    const float endPosL = baseTimeL + windowSizeInSamples * prevPhase + tp[tap].simOffsetL0;
+                    const float endPosR = baseTimeR + windowSizeInSamples * prevPhase + tp[tap].simOffsetR0;
 
                     const float startL = baseTimeL + windowSizeInSamples * phase;
                     const float startR = baseTimeR + windowSizeInSamples * phase;
 
-                    tp[tap].simOffsetL[sub] = cr.computeSimOffset(dlL, endPosL, startL);
-                    tp[tap].simOffsetR[sub] = cr.computeSimOffset(dlR, endPosR, startR);
+                    tp[tap].simOffsetL0 = cr.computeSimOffset(dlL, endPosL, startL);
+                    tp[tap].simOffsetR0 = cr.computeSimOffset(dlR, endPosR, startR);
                 }
 
-                tp[tap].phasePrevSub[sub] = phase;
+                tp[tap].phasePrevSub0 = phase;
                 // -----------------------------------------------------------
                 float window = 0.5f * (1.0f - std::cos(2.0f * pi * phase));
                 float windowPos = windowSizeInSamples * phase;
-                float delayL = std::max(0.0f, baseTimeL + windowPos + tp[tap].simOffsetL[sub] + modLFOValue);
-                float delayR = std::max(0.0f, baseTimeR + windowPos + tp[tap].simOffsetR[sub] + modLFOValue);
+                float delayL = std::max(0.0f, baseTimeL + windowPos + tp[tap].simOffsetL0 + modLFOValue);
+                float delayR = std::max(0.0f, baseTimeR + windowPos + tp[tap].simOffsetR0 + modLFOValue);
+
+                pitchShiftedL += dlL.readSample(delayL) * window * tp[tap].gain.getNextValue();
+                pitchShiftedR += dlR.readSample(delayR) * window * tp[tap].gain.getNextValue();
+            }
+
+            // sub 1 (half-period offset)
+            {
+                float phase = tp[tap].phase + 0.5f;
+                if (phase >= 1.0f)
+                    phase -= 1.0f;
+
+                const float prevPhase = tp[tap].phasePrevSub1;
+                if (std::abs(phase - prevPhase) > 0.5f)
+                {
+                    const float endPosL = baseTimeL + windowSizeInSamples * prevPhase + tp[tap].simOffsetL1;
+                    const float endPosR = baseTimeR + windowSizeInSamples * prevPhase + tp[tap].simOffsetR1;
+
+                    const float startL = baseTimeL + windowSizeInSamples * phase;
+                    const float startR = baseTimeR + windowSizeInSamples * phase;
+
+                    tp[tap].simOffsetL1 = cr.computeSimOffset(dlL, endPosL, startL);
+                    tp[tap].simOffsetR1 = cr.computeSimOffset(dlR, endPosR, startR);
+                }
+
+                tp[tap].phasePrevSub1 = phase;
+                // -----------------------------------------------------------
+                float window = 0.5f * (1.0f - std::cos(2.0f * pi * phase));
+                float windowPos = windowSizeInSamples * phase;
+                float delayL = std::max(0.0f, baseTimeL + windowPos + tp[tap].simOffsetL1 + modLFOValue);
+                float delayR = std::max(0.0f, baseTimeR + windowPos + tp[tap].simOffsetR1 + modLFOValue);
 
                 pitchShiftedL += dlL.readSample(delayL) * window * tp[tap].gain.getNextValue();
                 pitchShiftedR += dlR.readSample(delayR) * window * tp[tap].gain.getNextValue();

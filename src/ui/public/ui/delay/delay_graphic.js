@@ -1,12 +1,11 @@
 import { LitElement, html, css } from 'lit';
 import * as THREE from 'three';
-import { getSliderState } from '../juce.js';
+import { getSliderState } from '../../juce.js';
 import { Line2 } from 'three/addons/lines/Line2.js';
 import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
-import { delayTimesL, delayTimesR, tapStates } from '../event_listener.js';
-import { Smoothening } from './ui/utility.js';
-import { color, lerpColor } from './drawings.js';
+import { Smoothening } from '../components/utility.js';
+import { color, lerpColor } from '../shared/drawing.js';
 
 export class DelayGraphic extends LitElement {
     arcs = [];
@@ -41,6 +40,21 @@ export class DelayGraphic extends LitElement {
         super();
         this.width = 0;
         this.height = 0;
+
+        this.delayTimesL = [0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1];
+        this.delayTimesR = [0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1];
+        this.tapStates = [1, 1, 1, 1, 1, 1, 1, 1];
+
+        this.backendListeners = [];
+        if (window.__JUCE__) {
+            this.backendListeners.push(
+                window.__JUCE__.backend.addEventListener("delayTimesL", (values) => { this.delayTimesL = JSON.parse(values); }),
+                window.__JUCE__.backend.addEventListener("delayTimesR", (values) => { this.delayTimesR = JSON.parse(values); }),
+                window.__JUCE__.backend.addEventListener("tapStates", (values) => { this.tapStates = JSON.parse(values); })
+            );
+        } else {
+            console.warn("JUCE backend not found — using placeholder delay times");
+        }
     }
 
     firstUpdated() {
@@ -214,7 +228,7 @@ export class DelayGraphic extends LitElement {
             const xOffsetSmooth = new Smoothening(0.1, this.isStereoLock ? 0 : xOffset);
 
             for (let tap = 0; tap < 8; tap++) {
-                const rawRadius = channel === 0 ? delayTimesL[tap] : delayTimesR[tap];
+                const rawRadius = channel === 0 ? this.delayTimesL[tap] : this.delayTimesR[tap];
                 const radiusSmooth = new Smoothening(0.1, rawRadius);
                 const radius = radiusSmooth.get();
 
@@ -255,7 +269,7 @@ export class DelayGraphic extends LitElement {
                     endAngle,
                     segmentCount,
                     radiusSmooth,
-                    opacitySmooth: new Smoothening(0.05, tapStates[tap] === 1 ? 1 : 0, 0.15)
+                    opacitySmooth: new Smoothening(0.05, this.tapStates[tap] === 1 ? 1 : 0, 0.15)
                 });
                 this.scene.add(arc);
             }
@@ -264,7 +278,7 @@ export class DelayGraphic extends LitElement {
 
     updateArcs() {
         for (const { mesh, channel, tap, xOffset, xOffsetSmooth, startAngle, endAngle, segmentCount, radiusSmooth, opacitySmooth } of this.arcs) {
-            const rawRadius = channel === 0 ? delayTimesL[tap] : delayTimesR[tap];
+            const rawRadius = channel === 0 ? this.delayTimesL[tap] : this.delayTimesR[tap];
             radiusSmooth.set(rawRadius);
             const radius = radiusSmooth.get();
 
@@ -273,7 +287,7 @@ export class DelayGraphic extends LitElement {
 
             mesh.geometry.setPositions(this.#arcPositions(offset, radius, startAngle, endAngle, segmentCount));
 
-            opacitySmooth.set(tapStates[tap] === 1 ? 1 : 0);
+            opacitySmooth.set(this.tapStates[tap] === 1 ? 1 : 0);
             mesh.material.opacity = opacitySmooth.get();
             mesh.visible = mesh.material.opacity > 0.001;
         }
@@ -298,6 +312,9 @@ export class DelayGraphic extends LitElement {
         this.renderer?.domElement.removeEventListener("mousemove", this.onMouseMove);
         this.renderer?.domElement.removeEventListener("mouseleave", this.onMouseLeave);
         this.renderer?.domElement.removeEventListener("mouseup", this.onMouseUp);
+        for (const handle of this.backendListeners) {
+            window.__JUCE__.backend.removeEventListener(handle);
+        }
         for (const { mesh } of this.arcs) {
             mesh.geometry.dispose();
             mesh.material.dispose();

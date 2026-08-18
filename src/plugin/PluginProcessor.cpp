@@ -125,48 +125,26 @@ void PetalAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::
         buffer.clear(i, 0, buffer.getNumSamples());
     }
 
-    petal.setDelayTapTimes(params->freeTimeL->getSmooth(),
-                           params->freeTimeR->getSmooth(),
-                           params->syncTimeL->getSmooth(),
-                           params->syncTimeR->getSmooth(),
-                           // delay time modification
-                           params->positionL->getSmooth(),
-                           params->skewL->getSmooth(),
-                           params->positionR->getSmooth(),
-                           params->skewR->getSmooth(),
-                           params->round->getSmooth(),
-                           // sync
-                           params->isSyncL->getSmooth(),
-                           params->isSyncR->getSmooth(),
-                           params->stereoLock->getSmooth());
+#define S(id) params->id->getSmooth()
 
-    petal.setCharacterAttributes(params->inputLevel->getSmooth(),
-                                 params->delayLevel->getSmooth(),
-                                 params->dryLevel->getSmooth(),
+    petal.setDelayTapTimes(S(freeTimeL), S(freeTimeR), S(syncTimeL), S(syncTimeR),
+                           S(positionL), S(skewL), S(positionR), S(skewR), S(round),  // delay time
+                           S(isSyncL), S(isSyncR), S(stereoLock)); // sync
 
-                                 params->feedbackAmt->getSmooth(),
-                                 params->feedbackLen->getSmooth(),
-                                 params->windowSize->getSmooth(),
+    petal.setCharacterAttributes(S(inputLevel), S(delayLevel), S(dryLevel), // level
+                                 S(feedbackAmt), S(feedbackLen), S(windowSize), // feedback
+                                 S(lfoRate), S(lfoAmount),     // modulation
+                                 S(filterCutoff), S(filterShape)); // filter
 
-                                 params->lfoRate->getSmooth(),   // lfo rate
-                                 params->lfoAmount->getSmooth(), // lfo amount
+    petal.rvb.setReverbAttributes(S(reverbLevel), S(reverbDecayTime), S(reverbLPF), S(reverbHPF), S(reverbSize));
 
-                                 params->filterCutoff->getSmooth(), // filter cutoff
-                                 params->filterShape->getSmooth());  // filter shape
-
-    petal.rvb.setReverbAttributes(params->reverbLevel->getSmooth(),
-                                  params->reverbDecayTime->getSmooth(),
-                                  params->reverbLPF->getSmooth(),
-                                  params->reverbHPF->getSmooth(),
-                                  params->reverbSize->getSmooth());
-
+#undef S
     for(int tap = 0; tap < 8; tap++){
         petal.setDelayTapAttributes(tap,
                                     params->tapState[tap]->getSmooth(),
                                     params->tapShiftAmt[tap]->getSmooth(),
                                     params->tapReverbAmt[tap]->getSmooth());
     }
-
     petal.processBlock(buffer);
 }
 

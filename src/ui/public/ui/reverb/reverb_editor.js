@@ -1,10 +1,9 @@
 import { LitElement, html, css } from 'lit';
-import "./ui/pictSlider.js"
-import "./ui/button.js"
+import "../components/slider.js"
 import "./reverb_graphics.js"
-import { color } from './drawings.js';
-import { getSliderState } from '../juce.js';
-import { drawReverbSend, drawReverbSize, drawReverbDecay, drawReverbDampening, drawReverbTone } from './drawings.js';
+import { color } from '../shared/drawing.js';
+import { getSliderState } from '../../juce.js';
+import { drawReverbSize, drawReverbDecay, drawReverbTone } from './drawing.js';
 
 export class ReverbEditor extends LitElement {
     static styles = css`
@@ -114,14 +113,14 @@ export class ReverbEditor extends LitElement {
                         style="--numbox-color:  ${ color.lightgrey };
                         --numbox-width: 80px;
                         --numbox-align: right;
-                        --text-align: right">
+                        --text-align: center">
                     </petal-num-slider>
 
                     <petal-num-slider juceID="reverbHPF" suffix=" Hz" mode="rate"
                         style="--numbox-color:  ${ color.lightgrey };
                         --numbox-width: 80px;
-                        --numbox-align: right
-                        --text-align: right">
+                        --numbox-align: left
+                        --text-align: center">
                     </petal-num-slider>
 
                     </div>

@@ -1,9 +1,9 @@
 import { LitElement, html, css } from 'lit';
-import './delay_editor.js'
-import './reverb_editor.js'
-import './tap_editor.js'
-import './io_editor.js'
-import './selection_tab.js'
+import './delay/delay_editor.js'
+import './reverb/reverb_editor.js'
+import './tap/tap_editor.js'
+import './io/io_editor.js'
+import './selection_tab/selection_tab.js'
 
 class App extends LitElement {
     static properties = {

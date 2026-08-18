@@ -1,7 +1,8 @@
 #pragma once
 #include <JuceHeader.h>
 #include <vector>
-#include "../PluginProcessor.h"
+#include "../plugin/PluginProcessor.h"
+#include "ParameterList.h"
 
 class PetalAudioProcessor;
 class ParameterInstance;
@@ -11,13 +12,7 @@ public:
     Parameters(PetalAudioProcessor& p);
 
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
-
-    /** Re-derives every parameter's smoothing ramp from the current sample rate and
-        block size. Call from prepareToPlay. */
     void prepare(double sampleRate, int samplesPerBlock);
-
-    /** ParameterInstances add themselves here on construction, so prepare() can reach
-        all of them without a hand-maintained list that could drift out of sync. */
     void registerInstance(ParameterInstance* instance);
 
 private:
@@ -27,47 +22,13 @@ private:
 public:
     juce::AudioProcessorValueTreeState apvts;
 
-    std::unique_ptr<ParameterInstance>
-        inputLevel,
+#define X(id, ...) std::unique_ptr<ParameterInstance> id;
+    PETAL_ALL_SCALAR_PARAMS(X)
+#undef X
 
-        freeTimeL,
-        freeTimeR,
-        syncTimeL,
-        syncTimeR,
-        isSyncL,
-        isSyncR,
-        stereoLock,
+    std::array<std::unique_ptr<ParameterInstance>, 8>
+    tapState, tapShiftAmt, tapReverbAmt;
 
-        feedbackAmt,
-        feedbackLen,
-
-        delayLevel,
-
-        positionL,
-        skewL,
-        positionR,
-        skewR,
-        round,
-
-        windowSize,
-
-        lfoRate,
-        lfoAmount,
-
-        filterCutoff,
-        filterShape,
-
-        reverbDecayTime,
-        reverbSize,
-        reverbLPF,
-        reverbHPF,
-        reverbLevel,
-
-        dryLevel;
-
-    std::array<std::unique_ptr<ParameterInstance>, 8> 
-    tapState, tapShiftAmt, tapReverbAmt; 
-    
 };
 
 class ParameterInstance : public juce::AudioProcessorParameter::Listener, juce::AsyncUpdater
@@ -75,10 +36,6 @@ class ParameterInstance : public juce::AudioProcessorParameter::Listener, juce::
 public:
     ParameterInstance(PetalAudioProcessor& p, Parameters& pm, juce::String paramID);
 
-    /** Sets the smoothing ramp length. getSmooth() advances the ramp once per
-        processBlock() call, so the length is measured in blocks - deriving it from the
-        sample rate and block size keeps the smoothing time fixed rather than letting it
-        scale with the host's buffer size. */
     void prepare(double sampleRate, int samplesPerBlock) noexcept;
 
     //==============================================================================
@@ -95,7 +52,6 @@ public:
     juce::RangedAudioParameter *getRangedAudioParameter() const noexcept;
 
 private:
-    /** How long a parameter takes to reach a new value, in seconds. */
     static constexpr double smoothingTimeSeconds = 0.05;
 
     float valueSafe;

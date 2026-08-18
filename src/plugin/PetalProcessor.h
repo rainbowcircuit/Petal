@@ -91,9 +91,12 @@ private:
         float shiftAmount = 1.0f;
         float reverbAmount = 0.0f;
 
-        std::array<float, numOverlaps> phasePrevSub{{}};
-        std::array<float, numOverlaps> simOffsetL{{}};
-        std::array<float, numOverlaps> simOffsetR{{}};
+        float phasePrevSub0 = 0.0f;
+        float phasePrevSub1 = 0.0f;
+        float simOffsetL0 = 0.0f;
+        float simOffsetL1 = 0.0f;
+        float simOffsetR0 = 0.0f;
+        float simOffsetR1 = 0.0f;
     };
 
     std::array<tapAttributes, 8> tp;

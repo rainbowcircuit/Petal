@@ -125,6 +125,8 @@ void PetalAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::
         buffer.clear(i, 0, buffer.getNumSamples());
     }
 
+    petal.setBPM(getPlayHead());
+
 #define S(id) params->id->getSmooth()
 
     petal.setDelayTapTimes(S(freeTimeL), S(freeTimeR), S(syncTimeL), S(syncTimeR),

@@ -36,8 +36,8 @@ void PetalProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         tp[tap].timeR.reset(sampleRate, 0.15f);
     }
 
-    filterL.prepareToPlay(sampleRate);
-    filterR.prepareToPlay(sampleRate);
+    filterL.prepareToPlay(static_cast<float>(sampleRate));
+    filterR.prepareToPlay(static_cast<float>(sampleRate));
     
 }
 
@@ -178,7 +178,7 @@ void PetalProcessor::processBlock(juce::AudioBuffer<float> &buffer) noexcept
 void PetalProcessor::advancePhase(int tap) noexcept
 {
     float rate = ((1.0f - tp[tap].shiftAmount) * 1000.0f) / windowSizeInMilliseconds;
-    float phaseAngle = rate / sampleRate;
+    float phaseAngle = rate / static_cast<float>(sampleRate);
 
     tp[tap].phase += phaseAngle;
     if (tp[tap].phase >= 1.0f) { tp[tap].phase -= 1.0f; }
@@ -190,14 +190,14 @@ void PetalProcessor::setDelayTapTimes(float freeTimeLInMs, float freeTimeRInMs, 
                                       bool isSyncL, bool isSyncR, bool stereoLock)
 {
     const int lastIndex = (int)syncTimeOptions.size() - 1;
-    float syncTimeLInMs = syncTimeOptions[(size_t)juce::jlimit(0, lastIndex, syncIndexL)] * (240000.0f / bpm);
-    float syncTimeRInMs = syncTimeOptions[(size_t)juce::jlimit(0, lastIndex, syncIndexR)] * (240000.0f / bpm);
+    float syncTimeLInMs = static_cast<float>(syncTimeOptions[(size_t)juce::jlimit(0, lastIndex, syncIndexL)] * (240000.0 / bpm));
+    float syncTimeRInMs = static_cast<float>(syncTimeOptions[(size_t)juce::jlimit(0, lastIndex, syncIndexR)] * (240000.0 / bpm));
 
     float timeLInMs = isSyncL ? syncTimeLInMs : freeTimeLInMs;
     float timeRInMs = stereoLock ? timeLInMs : (isSyncR ? syncTimeRInMs : freeTimeRInMs);
 
-    float timeLInSamples = (timeLInMs / 1000.0f) * sampleRate;
-    float timeRInSamples = (timeRInMs / 1000.0f) * sampleRate;
+    float timeLInSamples = (timeLInMs / 1000.0f) * static_cast<float>(sampleRate);
+    float timeRInSamples = (timeRInMs / 1000.0f) * static_cast<float>(sampleRate);
 
     float positionRInUse = stereoLock ? positionL / 100.0f : positionR / 100.0f;
     float skewRInUse = stereoLock ? skewL / 100.0f : skewR / 100.0f;
@@ -223,9 +223,10 @@ void PetalProcessor::setDelayTapTimes(float freeTimeLInMs, float freeTimeRInMs, 
 void PetalProcessor::setBPM(juce::AudioPlayHead *playhead)
 {
     if (playhead == nullptr) { return; }
-    if (playhead->getPosition()->getBpm().hasValue())
+    auto position = playhead->getPosition();
+    if (position.hasValue() && position->getBpm().hasValue())
     {
-        this->bpm = *playhead->getPosition()->getBpm();
+        this->bpm = *position->getBpm();
     }
 }
 
@@ -248,14 +249,14 @@ void PetalProcessor::setCharacterAttributes(float inputLevelInDB, float delayLev
     dryGain = juce::Decibels::decibelsToGain(dryLevelInDB, -72.0f);
 
     this->windowSizeInMilliseconds = windowSizeInMilliseconds;
-    this->windowSizeInSamples = (sampleRate / 1000.0f) * windowSizeInMilliseconds;
+    this->windowSizeInSamples = (static_cast<float>(sampleRate) / 1000.0f) * windowSizeInMilliseconds;
 
     // feedback
     this->feedbackAmt = std::clamp(feedbackAmt / 100.0f, 0.0f, 0.985f);
     this->feedbackLen = std::clamp(feedbackLen - 1, 0, 7);
 
     // mod LFO
-    this->modLFOAngle = lfoRateInHz/sampleRate;
+    this->modLFOAngle = lfoRateInHz / static_cast<float>(sampleRate);
     this->modLFODepthInSamples = (lfoAmount / 100.0f) * (maxModLFODepthInMs / 1000.0f) * (float)sampleRate;
 
     // filtering

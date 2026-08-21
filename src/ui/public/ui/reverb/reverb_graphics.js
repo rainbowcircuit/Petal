@@ -52,13 +52,6 @@ export class ReverbGraphic extends LitElement {
         });
         resizeObserver.observe(this.container);
 
-        // Guarded: the reverb tab starts hidden (display:none), so ResizeObserver
-        // never fires and initializeSpace()/this.mesh are delayed until the tab is
-        // shown. Without this guard, the backend's initial value broadcast (which
-        // arrives right at startup, before the mesh exists) would throw here — and
-        // since callListeners() has no try/catch, that throw silently aborts the
-        // broadcast for every other listener queued after this one, including the
-        // reverbDecayTime/reverbSize slider widgets themselves.
         this.onSliderChange = () => {
             if (!this.mesh) return;
             let decay = this.reverbDecaySlider.getNormalisedValue();
@@ -148,9 +141,6 @@ export class ReverbGraphic extends LitElement {
         this.renderer.setPixelRatio(4)
         this.container.appendChild(this.renderer.domElement);
 
-        // The mesh now exists, so pull the current decay/size values instead of
-        // waiting for the next change event (the initial one may have already
-        // fired and been missed while the mesh didn't exist yet).
         this.onSliderChange();
 
         this.animate();

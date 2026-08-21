@@ -42,7 +42,7 @@ class App extends LitElement {
     constructor(){
         super()
         this.isDisplayingDelay = true;
-        this.isDisplayingIO = true;
+        this.isDisplayingIO = false;
         this.scale = 0.875;
     }
 

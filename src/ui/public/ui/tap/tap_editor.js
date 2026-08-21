@@ -135,21 +135,21 @@ export class TapEditor extends LitElement {
         const instances = []
 
         return html`
-    <div style="display: flex; flex-direction: column; justify-content: space-around; height: 100%; width: 85%; margin: auto">
+    <div style="display: flex; flex-direction: column; justify-content: space-evenly; height: 100%; width: 100%">
         <!-- top controls -->
-        <div style="display: flex; flex-direction: row; justify-content: space-around; align-items: center">
+        <div style="display: flex; flex-direction: row; justify-content: space-evenly; align-items: center">
             <label>Feedback</label>
             <petal-num-slider juceID="feedbackAmt" suffix=" %"
-                style="--numbox-align: center; --text-align: center" >
+                style="--numbox-align: right; --text-align: center" >
             </petal-num-slider>
             <label>Length</label>
             <petal-num-slider juceID="feedbackLen" suffix="" mode="int"
-                style="--numbox-align: center; --text-align: center" >
+                style="--numbox-align: right; --text-align: center" >
             </petal-num-slider>
         </div>
 
         <!-- tap instances -->
-        <div style="display: flex; flex-direction: row; justify-content: space-between; height: 80%">
+        <div style="display: flex; flex-direction: row; justify-content: space-around; height: 80%">
             <div style="display: flex; flex-direction: column; justify-content: space-between;">
                 <tap-instance style="width: 150px" .isPitch=${this.isPitch} tapIndex=0></tap-instance>
                 <tap-instance .isPitch=${this.isPitch} tapIndex=2></tap-instance>

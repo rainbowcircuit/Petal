@@ -1,6 +1,7 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css, unsafeCSS } from 'lit';
 import "../components/button.js"
 import { drawSelectDelay, drawSelectReverb, drawSelectIO } from './drawing.js';
+import { color } from '../shared/drawing.js';
 
 export class SelectionTab extends LitElement {
     static properties = {
@@ -11,7 +12,7 @@ export class SelectionTab extends LitElement {
     constructor(){
         super()
         this.isDisplayingDelay = false;
-        this.isDisplayingIO = true;
+        this.isDisplayingIO = false;
     }
 
     static styles = css `
@@ -24,33 +25,81 @@ export class SelectionTab extends LitElement {
             font-family: Verdana;
             color: #696969;
         }
+
+        .tab-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            padding: 10px 0;
+        }
+
+        .tab-row {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .indicator {
+            position: absolute;
+            left: 0;
+            width: 1.5px;
+            height: calc(100% / 3);
+            border-radius: 1px;
+            background: linear-gradient(180deg, ${unsafeCSS(color.pink)}, ${unsafeCSS(color.orange)});
+        }
+
+        .indicator-select {
+            top: 0;
+            transition: top 0.1s ease;
+        }
+
+        .indicator-toggle {
+            top: calc(2 * 100% / 3);
+            opacity: 0;
+            transition: opacity 0.1s ease;
+        }
+
+        .indicator-toggle.active {
+            opacity: 1;
+        }
     `
 
     render(){
+        const selectIndex = this.isDisplayingDelay ? 0 : 1;
+
         return html`
-        <div style="display: flex; flex-direction: column; justify-content: space-between; align-items: center; height: 100%; padding: 20px; box-sizing: border-box">
-            <div style="display: flex; flex-direction: column;">
+        <div class="tab-container">
+            <div class="indicator indicator-select" style="top: calc(${selectIndex} * 100% / 3)"></div>
+            <div class="indicator indicator-toggle ${this.isDisplayingIO ? 'active' : ''}"></div>
+
+            <div class="tab-row">
                 <petal-button
-                    @click=${() => this._selectDelay(true)}
+                    @click=${() => this.selectDelay(true)}
                     style="--button-width: 50px;
                     --button-height: 50px"
                     .drawing=${drawSelectDelay}>
                 </petal-button>
+            </div>
 
+            <div class="tab-row">
                 <petal-button
-                    @click=${() => this._selectDelay(false)}
+                    @click=${() => this.selectDelay(false)}
                     style="--button-width: 50px;
                     --button-height: 50px"
                     .drawing=${drawSelectReverb}>
                 </petal-button>
             </div>
 
-            <petal-button
-                @click=${() => this._toggleIO()}
-                style="--button-width: 50px;
-                --button-height: 50px"
-                .drawing=${drawSelectIO}>
-            </petal-button>
+            <div class="tab-row">
+                <petal-button
+                    @click=${() => this.toggleIO()}
+                    style="--button-width: 50px;
+                    --button-height: 50px"
+                    .drawing=${drawSelectIO}>
+                </petal-button>
+            </div>
         </div>
         `
     }
@@ -62,7 +111,7 @@ export class SelectionTab extends LitElement {
         if (ioButton) ioButton.value = this.isDisplayingIO;
     }
 
-    _selectDelay(isDelay) {
+    selectDelay(isDelay) {
         if (this.isDisplayingDelay === isDelay) {
             this.requestUpdate();
             return;
@@ -74,7 +123,7 @@ export class SelectionTab extends LitElement {
         }));
     }
 
-    _toggleIO() {
+    toggleIO() {
         this.dispatchEvent(new CustomEvent('display-io-change', {
             detail: !this.isDisplayingIO,
             bubbles: true,
@@ -82,7 +131,5 @@ export class SelectionTab extends LitElement {
         }));
     }
 }
-
-
 
 customElements.define("selection-tab", SelectionTab)

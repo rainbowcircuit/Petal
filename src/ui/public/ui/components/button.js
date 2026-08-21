@@ -1,5 +1,6 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css, unsafeCSS } from 'lit';
 import { getSliderState } from '../../juce.js';
+import { HOVER_BRIGHTEN_FILTER } from '../shared/drawing.js';
 
 export class PetalButton extends LitElement {
     static properties = {
@@ -30,6 +31,9 @@ export class PetalButton extends LitElement {
             width: 100%;
             height: 100%;
         }
+        button:hover:not(:has(canvas)) {
+            filter: ${unsafeCSS(HOVER_BRIGHTEN_FILTER)};
+        }
     `;
 
     constructor() {
@@ -39,6 +43,7 @@ export class PetalButton extends LitElement {
         this.value = false;
         this.drawing = null;
         this.juceSlider = null;
+        this.hovered = false;
     }
 
     firstUpdated() {
@@ -49,6 +54,9 @@ export class PetalButton extends LitElement {
 
         if (this.drawing) {
             this.canvas = this.shadowRoot.querySelector('canvas');
+
+            this.button.addEventListener("mouseenter", () => { this.hovered = true; this.draw(); });
+            this.button.addEventListener("mouseleave", () => { this.hovered = false; this.draw(); });
 
             this.resizeObserver = new ResizeObserver((entries) => {
                 const { width, height } = entries[0].contentRect;
@@ -118,7 +126,7 @@ export class PetalButton extends LitElement {
         ctx.save();
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         ctx.clearRect(0, 0, this.w, this.h);
-        this.drawing(ctx, this.w, this.h, this.value);
+        this.drawing(ctx, this.w, this.h, this.value, this.hovered);
         ctx.restore();
     }
 

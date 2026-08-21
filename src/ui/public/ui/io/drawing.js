@@ -123,19 +123,24 @@ export function drawModDisplay(canvas, rate = 1, amp = 1) {
     ctx.restore();
 }
 
-export function drawSlider(ctx, w, h, val = 0, aux = {}) {
+export function drawSlider(ctx, w, h, val = 0, hovered = false, aux = {}) {
 
     const baseColor = color.pink;
     const numLines = 16;
 
+    const pink = hovered ? color.lighterpink : color.pink;
+    const orange = hovered ? color.lighterorange : color.orange;
+    const tan = hovered ? color.lightertan : color.tan;
+    const grey = hovered ? color.lightergrey : color.grey;
+
     const activeGrad = ctx.createLinearGradient(w / 2, h, w / 2, h - h * val)
-    activeGrad.addColorStop(0, withAlpha(color.pink, val * 0.8 + 0.2))
-    activeGrad.addColorStop(0.8, withAlpha(color.orange, val * 0.2 + 0.8))
-    activeGrad.addColorStop(1, color.tan)
+    activeGrad.addColorStop(0, withAlpha(pink, val * 0.8 + 0.2))
+    activeGrad.addColorStop(0.8, withAlpha(orange, val * 0.2 + 0.8))
+    activeGrad.addColorStop(1, tan)
 
     const inactiveGrad = ctx.createLinearGradient(w / 2, h - h * val, w / 2, 0)
-    inactiveGrad.addColorStop(0, withAlpha(color.grey, 0.5))
-    inactiveGrad.addColorStop(1, color.grey)
+    inactiveGrad.addColorStop(0, withAlpha(grey, 0.5))
+    inactiveGrad.addColorStop(1, grey)
 
     const cx = w / 2
     const value = Math.floor(val * numLines);
@@ -147,7 +152,7 @@ export function drawSlider(ctx, w, h, val = 0, aux = {}) {
         ctx.beginPath()
         ctx.moveTo(cx - xExt, yPos);
         ctx.lineTo(cx + xExt, yPos);
-        ctx.strokeStyle = i > value ? inactiveGrad : i == value ? color.tan : activeGrad;
+        ctx.strokeStyle = i > value ? inactiveGrad : i == value ? tan : activeGrad;
         ctx.lineWidth = i == value ? 2 : 1.5;
         ctx.lineCap = "round";
         ctx.stroke()

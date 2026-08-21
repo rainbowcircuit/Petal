@@ -1,17 +1,22 @@
-import { color, withAlpha } from '../shared/drawing.js';
+import { color, withAlpha, brighten } from '../shared/drawing.js';
 
 // reverb size
-export function drawReverbSize(ctx, w, h, val = 1, aux = {}) {
+export function drawReverbSize(ctx, w, h, val = 1, hovered = false, aux = {}) {
     const cx = w / 2;
     const cy = h / 2;
     const r = w * 0.35;
+
+    const pink = hovered ? color.lighterpink : color.pink;
+    const orange = hovered ? color.lighterorange : color.orange;
+    const backFrame = hovered ? brighten("#333333") : "#333333";
+    const sideFrame = hovered ? brighten("#666666") : "#666666";
 
     ctx.lineJoin = "round"
     ctx.lineWidth = 1.5;
 
     const grad = ctx.createLinearGradient(w * 0.05, h / 2, w * 0.95, h / 2)
-    grad.addColorStop(0.35, color.pink);
-    grad.addColorStop(0.75, withAlpha(color.orange, 0.5));
+    grad.addColorStop(0.35, pink);
+    grad.addColorStop(0.75, withAlpha(orange, 0.5));
 
     ctx.fillStyle = grad
     // back frame
@@ -24,7 +29,7 @@ export function drawReverbSize(ctx, w, h, val = 1, aux = {}) {
         ctx.moveTo(cx, cy);
         ctx.lineTo(xPos, yPos);
     }
-    ctx.strokeStyle = "#333333"
+    ctx.strokeStyle = backFrame
     ctx.stroke();
 
 
@@ -38,7 +43,7 @@ export function drawReverbSize(ctx, w, h, val = 1, aux = {}) {
         else ctx.lineTo(xPos, yPos);
     }
     ctx.closePath();
-    ctx.strokeStyle = "#666666"
+    ctx.strokeStyle = sideFrame
     ctx.stroke();
 
     // inner fill
@@ -117,20 +122,25 @@ export function drawReverbTone(canvas, lp = 1, hp = 1) {
     const lpKnee = w * 0.05 + w * 0.7 * lp;
     drawFilterResponse(w * 0.05, lpKnee, lpKnee + kneeW, false);
 
-    const hpKnee = w * 0.05 + w * 0.7 * hp;
+    const hpKnee = w * 0.25 + w * 0.7 * hp;
     drawFilterResponse(w * 0.95, hpKnee, hpKnee - kneeW, true);
 
     ctx.restore();
 }
 
-export function drawReverbDecay(ctx, w, h, val = 1, aux = {}) {
+export function drawReverbDecay(ctx, w, h, val = 1, hovered = false, aux = {}) {
+    const tan = hovered ? color.lightertan : color.tan;
+    const orange = hovered ? color.lighterorange : color.orange;
+    const pink = hovered ? color.lighterpink : color.pink;
+    const dotColor = hovered ? brighten("#808080") : "grey";
+
     // dots
     for(let i = 0; i < 12; i++){
         let xPos = w * 0.1 + ((w * 0.8 / 12) * i);
 
         ctx.beginPath()
         ctx.arc(xPos, h * 0.8, 1, 0, Math.PI * 2, true)
-        ctx.fillStyle = 'grey';
+        ctx.fillStyle = dotColor;
         ctx.fill()
     }
 
@@ -151,9 +161,9 @@ export function drawReverbDecay(ctx, w, h, val = 1, aux = {}) {
         }
 
         const grad = ctx.createLinearGradient(w * 0.05, h/2, w * 0.95, h/2)
-        grad.addColorStop(0, color.tan);
-        grad.addColorStop(0.25, withAlpha(color.orange, 0.75));
-        grad.addColorStop(1, withAlpha(color.pink, 0.25));
+        grad.addColorStop(0, tan);
+        grad.addColorStop(0.25, withAlpha(orange, 0.75));
+        grad.addColorStop(1, withAlpha(pink, 0.25));
         ctx.strokeStyle = grad;
         ctx.lineCap = "round"
         ctx.lineWidth = 1.5

@@ -100,13 +100,6 @@ juce::WebBrowserComponent::Options PetalAudioProcessorEditor::buildWebviewOption
                                            { return getResource(url); });
 
 #if JUCE_WINDOWS
-    // The default Windows backend is the legacy IE control, which has no resource
-    // provider support - it would try to resolve https://juce.backend over the network
-    // and fail. WebView2 has to be requested explicitly.
-    //
-    // The user data folder must also be overridden: it otherwise defaults to a location
-    // next to the host executable (e.g. the DAW's install dir under Program Files),
-    // which plugins generally can't write to, and WebView2 then silently falls back to IE.
     options = options.withBackend(juce::WebBrowserComponent::Options::Backend::webview2)
                      .withWinWebView2Options(
                          juce::WebBrowserComponent::Options::WinWebView2{}
@@ -143,7 +136,7 @@ PetalAudioProcessorEditor::PetalAudioProcessorEditor(PetalAudioProcessor &p)
         addAndMakeVisible(webViewDownloadLink);
     }
 
-    const int width = 950;
+    const int width = 920;
     setResizable(true, false);
     setResizeLimits((int)width * 0.75f, (int)width * 0.75f / 2, (int)width, (int)width / 2);
     getConstrainer()->setFixedAspectRatio(2);

@@ -1,5 +1,6 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css, unsafeCSS } from 'lit';
 import { getSliderState } from '../../juce.js';
+import { HOVER_BRIGHTEN_FILTER } from '../shared/drawing.js';
 
 export class PetalSliderBase extends LitElement {
     static properties = {
@@ -184,6 +185,9 @@ export class PetalNumSlider extends PetalSliderBase {
         }
         input:focus {
             cursor: text;
+        }
+        input:hover {
+            filter: ${unsafeCSS(HOVER_BRIGHTEN_FILTER)};
         }
     `;
 
@@ -420,10 +424,14 @@ export class PetalPictSlider extends PetalSliderBase {
         super();
         this.drawing = null;
         this.drawingAux = null;
+        this.hovered = false;
     }
 
     firstUpdated() {
         this.canvas = this.shadowRoot.querySelector('canvas');
+
+        this.canvas.addEventListener("mouseenter", () => { this.hovered = true; this.drawCanvas(); });
+        this.canvas.addEventListener("mouseleave", () => { this.hovered = false; this.drawCanvas(); });
 
         // display:none ancestors (hidden tabs) never get a layout box, so
         // ResizeObserver won't fire until the tab is shown; size from computed
@@ -482,7 +490,7 @@ export class PetalPictSlider extends PetalSliderBase {
         ctx.save();
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         ctx.clearRect(0, 0, w, h);
-        this.drawing(ctx, w, h, this.norm, this.drawingAux);
+        this.drawing(ctx, w, h, this.norm, this.hovered, this.drawingAux);
         ctx.restore();
     }
 

@@ -127,39 +127,41 @@ export class DelayGraphic extends LitElement {
             this.lastClickYPos = e.clientY;
         };
 
-        this.onMouseMove = (e) => {
-            if (this.mouseState === 'idle'){
-                const rect = this.container.getBoundingClientRect();
-                const isLeft = (e.clientX - rect.left) < this.width / 2;
-                const r = 4;
-                this.sx.set((isLeft ? -1 : 1) * r * 0.5);
-                this.sy.set(-r * 0.5);
-                this.sz.set(-r * -0.7);
-                this.sCamera.set(1.5);
+        this.onHoverMove = (e) => {
+            if (this.mouseState !== 'idle') return;
+            const rect = this.container.getBoundingClientRect();
+            const isLeft = (e.clientX - rect.left) < this.width / 2;
+            const r = 4;
+            this.sx.set((isLeft ? -1 : 1) * r * 0.5);
+            this.sy.set(-r * 0.5);
+            this.sz.set(-r * -0.7);
+            this.sCamera.set(1.5);
+        };
+
+        this.onDragMove = (e) => {
+            if (this.mouseState !== 'dragL' && this.mouseState !== 'dragR') return;
+
+            const deltaX = (e.clientX - this.lastClickXPos) / this.width;
+            const deltaY = (e.clientY - this.lastClickYPos) / this.height;
+
+            const state = this.padValues[this.mouseState];
+            state.pos = Math.max(0, Math.min(1, state.pos + deltaX * this.padSensitivity));
+            state.skew = Math.max(0, Math.min(1, state.skew - deltaY * this.padSensitivity)); // up = increase
+
+            if (this.mouseState === 'dragL') {
+                this.positionLSlider.setNormalisedValue(state.pos);
+                this.skewLSlider.setNormalisedValue(state.skew);
+            } else {
+                this.positionRSlider.setNormalisedValue(state.pos);
+                this.skewRSlider.setNormalisedValue(state.skew);
             }
 
-            if (this.mouseState === 'dragL' || this.mouseState === 'dragR') {
-                const deltaX = (e.clientX - this.lastClickXPos) / this.width;
-                const deltaY = (e.clientY - this.lastClickYPos) / this.height;
-
-                const state = this.padValues[this.mouseState];
-                state.pos = Math.max(0, Math.min(1, state.pos + deltaX * this.padSensitivity));
-                state.skew = Math.max(0, Math.min(1, state.skew - deltaY * this.padSensitivity)); // up = increase
-
-                if (this.mouseState === 'dragL') {
-                    this.positionLSlider.setNormalisedValue(state.pos);
-                    this.skewLSlider.setNormalisedValue(state.skew);
-                } else {
-                    this.positionRSlider.setNormalisedValue(state.pos);
-                    this.skewRSlider.setNormalisedValue(state.skew);
-                }
-
-                this.lastClickXPos = e.clientX;
-                this.lastClickYPos = e.clientY;
-            }
+            this.lastClickXPos = e.clientX;
+            this.lastClickYPos = e.clientY;
         };
 
         this.onMouseLeave = () => {
+            if (this.mouseState !== 'idle') return;
             const r = 4;
             this.sx.set(0);
             this.sy.set(0);
@@ -172,9 +174,10 @@ export class DelayGraphic extends LitElement {
         };
 
         this.renderer.domElement.addEventListener("mousedown", this.onMouseDown);
-        this.renderer.domElement.addEventListener("mousemove", this.onMouseMove);
+        this.renderer.domElement.addEventListener("mousemove", this.onHoverMove);
         this.renderer.domElement.addEventListener("mouseleave", this.onMouseLeave);
-        this.renderer.domElement.addEventListener("mouseup", this.onMouseUp);
+        window.addEventListener("mousemove", this.onDragMove);
+        window.addEventListener("mouseup", this.onMouseUp);
         this.animate();
     }
 
@@ -309,9 +312,10 @@ export class DelayGraphic extends LitElement {
         super.disconnectedCallback();
         cancelAnimationFrame(this.raf);
         this.renderer?.domElement.removeEventListener("mousedown", this.onMouseDown);
-        this.renderer?.domElement.removeEventListener("mousemove", this.onMouseMove);
+        this.renderer?.domElement.removeEventListener("mousemove", this.onHoverMove);
         this.renderer?.domElement.removeEventListener("mouseleave", this.onMouseLeave);
-        this.renderer?.domElement.removeEventListener("mouseup", this.onMouseUp);
+        window.removeEventListener("mousemove", this.onDragMove);
+        window.removeEventListener("mouseup", this.onMouseUp);
         for (const handle of this.backendListeners) {
             window.__JUCE__.backend.removeEventListener(handle);
         }
